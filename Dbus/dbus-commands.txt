@@ -1,1 +1,0 @@
-dotnet dbus codegen --bus session --path /org/gnome/Shell/Extensions/Windows --service org.gnome.Shell
