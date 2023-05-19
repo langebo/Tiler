@@ -11,22 +11,12 @@
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
-    <PackageReference Include="Tmds.DBus" Version="0.14.0" />
-    <PackageReference Include="Tmds.DBus.SourceGenerator" Version="0.0.7">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.15.0" />
+    <PackageReference Include="Tmds.DBus.SourceGenerator" Version="0.0.7" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
-  <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
-    <Copy SourceFiles="Dbus/Windows.xml" DestinationFolder="$(OutDir)" />
-  </Target>
-  <Target Name="CopyCustomContentOnPublish" AfterTargets="Publish">
-    <Copy SourceFiles="Dbus/Windows.xml" DestinationFolder="$(PublishDir)" />
-  </Target>
-
   <ItemGroup>
-    <AdditionalFiles Include="Dbus/Windows.xml" DBusGeneratorMode="Handler" />
+    <AdditionalFiles Include="Dbus/Windows.xml" DBusGeneratorMode="Proxy" />
   </ItemGroup>
 
 </Project>

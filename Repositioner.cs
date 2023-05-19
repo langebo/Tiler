@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Tiler.DBus;
-using Tmds.DBus;
+using Tmds.DBus.Protocol;
+using Tmds.DBus.SourceGenerator;
 
 namespace Tiler;
 
@@ -16,7 +17,7 @@ public static class Repositioner
 
     public static async Task RepositionFocusedWindowAsync(Position position)
     {
-        var windowManager = Connection.Session.CreateProxy<IWindows>(SERVICE_NAME, OBJECT_PATH);
+        var windowManager = new OrgGnomeShellExtensionsWindows(Connection.Session, SERVICE_NAME, OBJECT_PATH);
         var windowsJson = await windowManager.ListAsync().ConfigureAwait(false);
 
         var windows = JsonSerializer.Deserialize(windowsJson, DbusJsonContext.Default.IEnumerableWindowInfo);
