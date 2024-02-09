@@ -2,17 +2,19 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
     <PublishAot>true</PublishAot>
     <StripSymbols>true</StripSymbols>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
-    <PackageReference Include="Tmds.DBus.Protocol" Version="0.15.0" />
-    <PackageReference Include="Tmds.DBus.SourceGenerator" Version="0.0.7" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.16.0" />
+    <PackageReference Include="Tmds.DBus.SourceGenerator" Version="0.0.15" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>

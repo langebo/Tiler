@@ -10,5 +10,7 @@ public enum Position
     MiddleThird,
     RightThird,
     LeftTwoThirds,
-    RightTwoThirds
+    RightTwoThirds,
+    LeftQuarter,
+    RightQuarter
 }

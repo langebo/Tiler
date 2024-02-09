@@ -41,6 +41,8 @@ public static class Repositioner
         Position.RightThird => new((int)(SCREEN_WIDTH / 1.5), SCREEN_WIDTH / 3),
         Position.LeftTwoThirds => new(0, (int)(SCREEN_WIDTH / 1.5)),
         Position.RightTwoThirds => new(SCREEN_WIDTH / 3, (int)(SCREEN_WIDTH / 1.5)),
+        Position.LeftQuarter => new(0, SCREEN_WIDTH / 4),
+        Position.RightQuarter => new((int)(SCREEN_WIDTH * 0.75), SCREEN_WIDTH / 4),
         _ => throw new ArgumentOutOfRangeException(nameof(position))
     };
 }
