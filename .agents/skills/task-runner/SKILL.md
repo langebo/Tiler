@@ -6,7 +6,7 @@ disable-model-invocation: false
 
 # Task Runner
 
-Orchestrate `docs/tasks` board tasks through a **developer → reviewer loop**.
+Orchestrate board tasks (the "Tiler" GitHub project) through a **developer → reviewer loop**.
 You (the main agent) never implement the task yourself — you dispatch subagents via
 the `subagent` tool (pi-subagents package; its builtin `worker` and `reviewer`
 agents) and judge their structured results.
@@ -20,11 +20,10 @@ The **board is the "Tiler" GitHub project** (number 1, owner `langebo`, repo
 (`Todo | In progress | ReviewPassed | Done | Dropped`). Access it with `gh`:
 - `gh issue view <num> --repo langebo/Tiler --json title,body` — the issue body IS the task block (Deps, description, guidelines, acceptance criteria)
 - `gh project item-list 1 --owner langebo --format json` — item field values (`Epic`, `Task status`)
-- `docs/tasks/issue-map.md` — TL-ID → issue number (dependency resolution)
-- `docs/tasks/e*.md` — migration source archive, **read-only** (do not edit)
+- TL-ID → issue number: issue titles carry the TL-ID (`gh issue list --repo langebo/Tiler --label task --state all`) — the planning files were migrated to GitHub Projects and are no longer kept in-repo
 
-1. Resolve the ID through `docs/tasks/issue-map.md` (missing map? rebuild it from
-   `gh issue list --repo langebo/Tiler --label task --state all`).
+1. Resolve the TL-ID to an issue: `gh issue list --repo langebo/Tiler --label task
+   --state all` (issue titles carry the TL-ID).
 2. View the issue. If its `Task status` is `Done` or `Dropped`: stop and ask the
    user what they want before proceeding (re-run anyway? resume the worktree?).
 3. **Dependency gate:** parse the task's `**Deps:**` line (ignore `—` and milestones
@@ -35,7 +34,7 @@ The **board is the "Tiler" GitHub project** (number 1, owner `langebo`, repo
    proceed.
 4. Collect spec context the developer needs: the spec files referenced by the task
    (e.g. `docs/features/cli.md`, `docs/architecture/backends.md`) and
-   `docs/README.md` (decisions table + constraints).
+   `docs/README.md` (constraints + testing strategy).
 5. Confirm with the user in one line: task title + what it does. Then start the loop (§4).
 
 ## 2. Prepare branch & worktree, then dispatch the developer
@@ -76,8 +75,9 @@ subagent sees nothing else). Include, in this order:
   the worker can read them, but inline the parts that constrain the design).
 - **Ground rules:** net11 + Native AOT, no new dependencies without explicit
   justification in the report, keep the repo's existing structure/conventions.
-  Note: `docs/` (the plan) is untracked and does NOT exist in the worktree — you
-  cannot read or edit it; work only from the specs pasted below. If you believe a
+  Note: `docs/` (architecture/features/packaging specs) is tracked and IS checked
+  out in the worktree — you may READ it there, but must NOT edit it; work from the
+  specs pasted below. If you believe a
   spec is wrong, record it under REPORT item (d); the orchestrator updates `docs/`
   in the main checkout at completion.
 - **Deliverable (exact contract):** end the final message with a `## REPORT` section
@@ -187,7 +187,8 @@ done yet — the user confirms manually.
      worktree, run the app, exercise the feature, run `tiler doctor`). Be concrete —
      real commands and expected visible outcomes, never "verify it works".
    - **Spec updates (if any):** if the REPORT flagged spec divergence, apply those
-     edits to `docs/` in the MAIN checkout now (the worktree has no `docs/`) and list
+     edits to `docs/` in the MAIN checkout now (in its own commit; the worktree's
+     copy is read-only for the developer) and list
      them here. Post the whole summary as an issue comment — the comment is the
      task's history on the board:
      `gh issue comment <num> --repo langebo/Tiler --body-file /tmp/<id>-summary.md`
