@@ -7,10 +7,11 @@ App id `dev.blange.tiler` · binary `tiler` · D-Bus name `dev.blange.Tiler`
 
 ## Current state
 
-Personal tooling, not a proof of concept: a single .NET 8 Native AOT CLI binary
-(self-contained, linux-x64) that moves the focused window via D-Bus to the GNOME
-"Windows" extension. In daily use by its author since 2023 — and now that agentic
-engineering can carry the work, it becomes a real application.
+Personal tooling: a single .NET 8 Native AOT CLI binary (self-contained, linux-x64)
+that moves the focused window via D-Bus to the GNOME "Windows" extension. Started
+in 2023 as a fast Rectangle substitute when switching from macOS to Fedora; in
+daily use ever since, and now that agentic engineering can carry the work, it
+becomes a real application.
 
 - `tiler <position>` — `Full`, `LeftHalf`, `MiddleHalf`, `RightHalf`, `LeftThird`,
   `MiddleThird`, `RightThird`, `LeftTwoThirds`, `RightTwoThirds`, `LeftQuarter`, `RightQuarter`
