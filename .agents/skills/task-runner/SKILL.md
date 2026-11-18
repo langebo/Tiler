@@ -34,7 +34,7 @@ The **board is the "Tiler" GitHub project** (number 1, owner `langebo`, repo
    proceed.
 4. Collect spec context the developer needs: the spec files referenced by the task
    (e.g. `docs/features/cli.md`, `docs/architecture/backends.md`) and
-   `docs/README.md` (constraints + testing strategy).
+   the root `README.md` (constraints + testing strategy).
 5. Confirm with the user in one line: task title + what it does. Then start the loop (§4).
 
 ## 2. Prepare branch & worktree, then dispatch the developer
