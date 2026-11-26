@@ -4,20 +4,26 @@ using Gtk;
 // Spike program for issue #4, not feature code. Needs an X display (run under Xvfb).
 // Window with a label + check button, one main-loop round-trip, exit 0.
 // --cycles N opens and closes N windows to prove repeated open/close.
+// --hold keeps the window open (Close button or WM close ends it) for manual inspection.
 internal static class Program
 {
     private static readonly Stopwatch Clock = Stopwatch.StartNew();
     private static Application _app = null!;
     private static int _cycles = 1;
     private static int _opened;
+    private static bool _hold;
 
     private static int Main(string[] args)
     {
-        for (var i = 0; i < args.Length - 1; i++)
+        for (var i = 0; i < args.Length; i++)
         {
-            if (args[i] == "--cycles")
+            if (args[i] == "--cycles" && i + 1 < args.Length)
             {
-                _cycles = int.Parse(args[i + 1]);
+                _cycles = int.Parse(args[++i]);
+            }
+            else if (args[i] == "--hold")
+            {
+                _hold = true;
             }
         }
 
@@ -34,6 +40,12 @@ internal static class Program
         var box = Box.New(Orientation.Vertical, 6);
         box.Append(Label.New("GTK4 on .NET 11 Native AOT: alive"));
         box.Append(CheckButton.NewWithLabel("check button"));
+        if (_hold)
+        {
+            var close = Button.NewWithLabel("Close");
+            close.OnClicked += (_, _) => _app.Quit();
+            box.Append(close);
+        }
 
         var window = ApplicationWindow.New(_app);
         window.SetTitle("Tiler AOT GUI spike");
@@ -47,6 +59,11 @@ internal static class Program
             GLib.Functions.IdleAdd(0, () =>
             {
                 Console.WriteLine($"window {index}/{_cycles} first-frame-ms {firstFrameMs:F1}");
+                if (_hold)
+                {
+                    return false;
+                }
+
                 // Open the next window before destroying this one: a GtkApplication quits
                 // as soon as its last window goes away.
                 if (index < _cycles)
