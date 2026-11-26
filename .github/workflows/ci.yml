@@ -1,8 +1,8 @@
 name: CI
 
 # Every PR (and every push to main) must build, test, and produce both AOT binaries.
-# Branch protection should require: CI / build, CI / test, CI / aot (linux-x64),
-# CI / aot (linux-arm64).
+# Branch protection requires these check-run names on main: build, test,
+# aot (linux-x64), aot (linux-arm64)
 
 on:
   pull_request:
