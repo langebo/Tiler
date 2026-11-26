@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <!-- Shipped binary name; CI and packaging both invoke `tiler`. -->
+    <AssemblyName>tiler</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
