@@ -1,0 +1,15 @@
+<Project>
+
+  <!-- Shared by every project; the single place a target-framework or version bump happens. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishAot>true</PublishAot>
+    <StripSymbols>true</StripSymbols>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
+</Project>
