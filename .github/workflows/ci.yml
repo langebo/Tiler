@@ -62,8 +62,8 @@ jobs:
 
   aot:
     name: aot (${{ matrix.rid }})
-    # arm64 builds natively on the arm runner: AOT cross-compiling x64 -> arm64 needs
-    # clang + an arm64 sysroot, which the stock x64 runner image does not carry.
+    # arm64 builds natively on the arm runner: AOT cross-compiling x64 -> arm64 needs an
+    # aarch64 sysroot and cross linker, which the stock x64 runner image does not carry.
     strategy:
       fail-fast: false
       matrix:

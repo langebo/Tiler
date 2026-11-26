@@ -19,10 +19,11 @@ becomes a real application.
   no runtime monitor detection yet
 - No settings UI, no keybinding management, no packaging
 
-Build & test (only the .NET 11 SDK needed, Linux):
+Build & test (Linux; only the .NET 11 SDK needed):
 `git clone <repo> && cd Tiler` · `dotnet build` · `dotnet test` · ship:
 `dotnet publish -c Release -r linux-x64` (Native AOT single binary →
-`bin/Release/net11.0/linux-x64/publish/tiler`). X11 integration tests need a display:
+`bin/Release/net11.0/linux-x64/publish/tiler`; AOT publish additionally needs `clang`,
+and `zlib1g-dev` on a stock Ubuntu box). X11 integration tests need a display:
 prefix `dotnet test` with `xvfb-run -a` on a headless box (`xvfb` package).
 
 ## The plan
