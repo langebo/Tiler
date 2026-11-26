@@ -7,7 +7,7 @@ App id `dev.blange.tiler` · binary `tiler` · D-Bus name `dev.blange.Tiler`
 
 ## Current state
 
-Personal tooling: a single .NET 8 Native AOT CLI binary (self-contained, linux-x64)
+Personal tooling: a single .NET 11 Native AOT CLI binary (self-contained, linux-x64)
 that moves the focused window via D-Bus to the GNOME "Windows" extension. Started
 in 2023 as a fast Rectangle substitute when switching from macOS to Fedora; in
 daily use ever since, and now that agentic engineering can carry the work, it
@@ -48,6 +48,8 @@ code and engineering documentation.
 ## Global constraints
 
 - Native AOT, self-contained single binary; no JIT, no `dotnet` runtime on user machines.
+  Targets .NET 11 (STS): support ends May 2027 — the .NET 12 LTS bump is a scheduled
+  follow-up chore, not v1 scope.
 - Works headless-CLI even without a GUI library present (dialog is an opt-in subcommand).
 - No third-party GNOME extension dependency (our own helper is the only Wayland requirement).
 - Config and keybinding state live in standard GSettings locations (Flatpak-compatible).

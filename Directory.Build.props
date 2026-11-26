@@ -2,7 +2,7 @@
 
   <!-- Shared by every project; the single place a target-framework or version bump happens. -->
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net11.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
