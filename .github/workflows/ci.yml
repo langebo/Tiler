@@ -151,7 +151,11 @@ jobs:
             out=$(xvfb-run -a ./out-spike/Tiler.AotGui.Spike)
             echo "$out" | awk '/first-frame-ms/ { print $4 }' >> startup.log
           done
+          echo "first-frame-ms samples (${{ matrix.rid }}): $(tr '\n' ' ' < startup.log)"
           startup_median=$(sort -n startup.log | sed -n 3p)
+          case "$startup_median" in
+            '' | *[!0-9.]*) echo "::error::no first-frame sample parsed"; exit 1 ;;
+          esac
           xvfb-run -a ./out-spike/Tiler.AotGui.Spike --cycles 50 > cycles.log
           cycles=$(grep -c '^window ' cycles.log)
           test "$cycles" -eq 50
@@ -163,4 +167,4 @@ jobs:
             echo "| RID | first frame, median of 5 (ms) | 50 open/close cycles | spike binary (B) | tiler binary (B) |"
             echo "|---|---|---|---|---|"
             echo "| ${{ matrix.rid }} | $startup_median | $cycles/50, exit 0 | $spike_bytes | $tiler_bytes |"
-          } >> "$GITHUB_STEP_SUMMARY"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
