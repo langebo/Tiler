@@ -6,8 +6,8 @@
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
-    <PackageReference Include="Tmds.DBus.Protocol" Version="0.16.0" />
-    <PackageReference Include="Tmds.DBus.SourceGenerator" Version="0.0.15" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.3" />
+    <PackageReference Include="Tmds.DBus.SourceGenerator" Version="0.0.19" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
