@@ -1,0 +1,16 @@
+<Project>
+
+  <!-- Test projects are not shipped: opt out of the AOT, self-contained, RID-specific
+       binary properties set in the root file. -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <PublishAot>false</PublishAot>
+    <SelfContained>false</SelfContained>
+    <RuntimeIdentifier></RuntimeIdentifier>
+    <!-- Build hosts may only carry newer shared runtimes than the target framework. -->
+    <RollForward>Major</RollForward>
+  </PropertyGroup>
+
+</Project>
