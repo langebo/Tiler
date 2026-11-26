@@ -54,7 +54,8 @@ Tiler.sln
 │   │   │   └── Wayland/        D-Bus proxy (Tmds source gen), helper checks
 │   │   ├── Config/             GSettings access
 │   │   ├── Keybindings/
-│   │   └── Gui/                GTK4 dialog (conditional; see settings-dialog.md)
+│   │   ├── Gui/                GTK4 dialog (conditional; see settings-dialog.md)
+│   │   └── Dbus/               current SNI/D-Bus proxy sources (move to Backends/Wayland/ in E1)
 │   └── Tiler.Helper/           (packaging-only) the GNOME extension (C/JS, not C#)
 ├── tests/
 │   ├── Tiler.Tests/            xunit: math, config diffing, keybindings
