@@ -110,3 +110,57 @@ jobs:
           if [ "$bytes" -gt "$AOT_SIZE_BUDGET_BYTES" ]; then
             echo "::warning title=AOT binary over soft budget::${{ matrix.rid }} is $bytes B ($mib MiB), over the $AOT_SIZE_BUDGET_BYTES B soft budget. Not a failure — raise AOT_SIZE_BUDGET_BYTES in ci.yml when the growth is accepted."
           fi
+
+  gui-spike:
+    # Temporary: measures GTK4-in-.NET-AOT for issue #4. Delete this job once
+    # docs/features/settings-dialog.md records the M0 decision. Additive only —
+    # the required checks (build, test, aot (*)) are untouched.
+    name: gui-spike (${{ matrix.rid }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rid: linux-x64
+            runner: ubuntu-24.04
+          - rid: linux-arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 11.0.x
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-spike-${{ runner.os }}-${{ matrix.rid }}-${{ hashFiles('**/*.csproj', 'global.json') }}
+          restore-keys: nuget-spike-${{ runner.os }}-${{ matrix.rid }}-
+      - name: install clang, GTK4 headers, Xvfb
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends clang zlib1g-dev libgtk-4-dev xvfb
+      - name: publish spike + shipping binary (size baseline)
+        run: |
+          set -euo pipefail
+          dotnet publish tests/Tiler.AotGui.Spike -c Release -r ${{ matrix.rid }} -o out-spike
+          dotnet publish src/Tiler/Tiler.csproj -c Release -r ${{ matrix.rid }} -o out-tiler
+      - name: measure startup (5 runs) and 50 open/close cycles
+        run: |
+          set -euo pipefail
+          for i in 1 2 3 4 5; do
+            out=$(xvfb-run -a ./out-spike/Tiler.AotGui.Spike)
+            echo "$out" | awk '/first-frame-ms/ { print $4 }' >> startup.log
+          done
+          startup_median=$(sort -n startup.log | sed -n 3p)
+          xvfb-run -a ./out-spike/Tiler.AotGui.Spike --cycles 50 > cycles.log
+          cycles=$(grep -c '^window ' cycles.log)
+          test "$cycles" -eq 50
+          spike_bytes=$(stat -c%s out-spike/Tiler.AotGui.Spike)
+          tiler_bytes=$(stat -c%s out-tiler/tiler)
+          {
+            echo "### GTK4-in-AOT spike (issue #4)"
+            echo ""
+            echo "| RID | first frame, median of 5 (ms) | 50 open/close cycles | spike binary (B) | tiler binary (B) |"
+            echo "|---|---|---|---|---|"
+            echo "| ${{ matrix.rid }} | $startup_median | $cycles/50, exit 0 | $spike_bytes | $tiler_bytes |"
+          } >> "$GITHUB_STEP_SUMMARY"
