@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Spike (issue #4): can a GTK4 window ship inside a net11 Native AOT binary?
+       Not part of Tiler.sln on purpose — the shipping build must never need GTK.
+       Re-enables the AOT settings tests/Directory.Build.props opts out of. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <PublishAot>true</PublishAot>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GirCore.Gtk-4.0" Version="0.8.1" />
+  </ItemGroup>
+
+</Project>
