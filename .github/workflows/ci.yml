@@ -1,0 +1,112 @@
+name: CI
+
+# Every PR (and every push to main) must build, test, and produce both AOT binaries.
+# Branch protection should require: CI / build, CI / test, CI / aot (linux-x64),
+# CI / aot (linux-arm64).
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  # Soft budget for the published Native AOT binary, per RID. Over-budget only emits a
+  # warning; raise this number (bytes) when the growth is reviewed and accepted.
+  AOT_SIZE_BUDGET_BYTES: 8388608
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 11.0.x
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', 'global.json') }}
+          restore-keys: nuget-${{ runner.os }}-
+      - name: build (linux-x64 from Directory.Build.props)
+        run: dotnet build
+      - name: build (linux-arm64)
+        run: dotnet build src/Tiler/Tiler.csproj -r linux-arm64
+
+  test:
+    name: test
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 11.0.x
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', 'global.json') }}
+          restore-keys: nuget-${{ runner.os }}-
+      - name: install Xvfb and X11 CLI tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xvfb x11-xserver-utils xdotool
+      # Unit tests need no display; the Tiler.X11.Tests integration project needs one.
+      - name: test (unit + Xvfb integration)
+        run: xvfb-run -a dotnet test
+
+  aot:
+    name: aot (${{ matrix.rid }})
+    # arm64 builds natively on the arm runner: AOT cross-compiling x64 -> arm64 needs
+    # clang + an arm64 sysroot, which the stock x64 runner image does not carry.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rid: linux-x64
+            runner: ubuntu-24.04
+          - rid: linux-arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 11.0.x
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ matrix.rid }}-${{ hashFiles('**/*.csproj', 'global.json') }}
+          restore-keys: nuget-${{ runner.os }}-${{ matrix.rid }}-
+      - name: install Xvfb
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xvfb x11-xserver-utils
+      - name: publish (${{ matrix.rid }})
+        run: dotnet publish src/Tiler/Tiler.csproj -c Release -r ${{ matrix.rid }} -o out
+      - name: smoke test under Xvfb
+        run: |
+          set -euo pipefail
+          file out/tiler
+          xvfb-run -a ./out/tiler --version
+      - name: record binary size (warn-only soft budget)
+        run: |
+          set -euo pipefail
+          bytes=$(stat -c%s out/tiler)
+          mib=$(awk -v b="$bytes" 'BEGIN { printf "%.2f", b / 1048576 }')
+          percent=$(awk -v b="$bytes" -v max="$AOT_SIZE_BUDGET_BYTES" 'BEGIN { printf "%.0f", 100 * b / max }')
+          {
+            echo "### AOT binary size (warn-only)"
+            echo ""
+            echo "| RID | bytes | MiB | of soft budget |"
+            echo "|---|---|---|---|"
+            echo "| ${{ matrix.rid }} | $bytes | $mib | $percent% ($AOT_SIZE_BUDGET_BYTES B) |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$bytes" -gt "$AOT_SIZE_BUDGET_BYTES" ]; then
+            echo "::warning title=AOT binary over soft budget::${{ matrix.rid }} is $bytes B ($mib MiB), over the $AOT_SIZE_BUDGET_BYTES B soft budget. Not a failure — raise AOT_SIZE_BUDGET_BYTES in ci.yml when the growth is accepted."
+          fi
