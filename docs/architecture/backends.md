@@ -157,6 +157,10 @@ live in features/runtime-geometry.md.
 
 Backends surface typed errors the CLI maps to exit codes (see cli.md):
 `NoDisplay`, `NoFocusedWindow`, `WindowNotTileable`, `HelperUnavailable`, `ApplyFailed`.
+Environment detection adds one more, raised before any backend exists: `NoBackend` —
+`XDG_SESSION_TYPE` missing or not `x11`/`wayland` (exit code 6, never a cross-protocol fallback).
+Every error carries the context that made it fail (the `DISPLAY`/`XDG_SESSION_TYPE` value,
+the window id and rectangle, the bus name) so the stderr line is actionable without a repro.
 
 ## Testing seams
 

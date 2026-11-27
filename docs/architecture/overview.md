@@ -37,9 +37,10 @@
 ## Environment selection
 
 1. `XDG_SESSION_TYPE` is the primary switch: `x11` → X11Backend, `wayland` → WaylandBackend.
-2. Failures fall back with a clear error (exit code 3, see cli.md) — **no silent
-   cross-protocol fallback** (e.g. a Wayland session with a leftover `$DISPLAY` must not
-   tile via X11, it can't).
+2. An unknown or unset value is a clear error with its own exit code (6, see cli.md) — **no
+   silent cross-protocol fallback** (e.g. a Wayland session with a leftover `$DISPLAY` must
+   not tile via X11, it can't). Exit code 3 stays for "no backend available" (no `$DISPLAY`
+   under X11, helper extension inactive on Wayland).
 
 ## Solution layout (proposed)
 
@@ -47,9 +48,11 @@
 Tiler.sln
 ├── src/
 │   ├── Tiler/                  CLI entry, engine, keybinding mgr (the binary)
-│   │   ├── Engine/             Position, Monitor, TileCalculator, Routing
+│   │   ├── Engine/             Models.cs (Monitor, FocusResult, TileRect, HealthStatus),
+│   │   │                        TilerErrors.cs; Position, TileCalculator, Routing (TL-202+)
 │   │   ├── Backends/
-│   │   │   ├── IWindowBackend.cs
+│   │   │   ├── IWindowBackend.cs   the backend contract
+│   │   │   ├── BackendFactory.cs   session detection; the only place a protocol is chosen
 │   │   │   ├── X11/            P/Invoke marshalling, _NET atom handling
 │   │   │   └── Wayland/        D-Bus proxy (Tmds source gen), helper checks
 │   │   ├── Config/             GSettings access
