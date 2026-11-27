@@ -110,3 +110,57 @@ jobs:
           if [ "$bytes" -gt "$AOT_SIZE_BUDGET_BYTES" ]; then
             echo "::warning title=AOT binary over soft budget::${{ matrix.rid }} is $bytes B ($mib MiB), over the $AOT_SIZE_BUDGET_BYTES B soft budget. Not a failure — raise AOT_SIZE_BUDGET_BYTES in ci.yml when the growth is accepted."
           fi
+
+  x11-spike:
+    # Temporary: proves the X11 P/Invoke surface works from a Native AOT binary for issue #5.
+    # Delete once TL-203 lands the real X11Backend. Additive only — the required checks
+    # (build, test, aot (*)) are untouched.
+    name: x11-spike (linux-x64)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 11.0.x
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-spike-${{ runner.os }}-${{ hashFiles('**/*.csproj', 'global.json') }}
+          restore-keys: nuget-spike-${{ runner.os }}-
+      - name: install clang, Xvfb and the X11 CLI oracles
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends clang zlib1g-dev xvfb x11-xserver-utils
+      - name: publish spike (linux-x64)
+        run: dotnet publish tests/Tiler.X11.Spike -c Release -r linux-x64 -o out-x11-spike
+      - name: run all five operations under Xvfb (RANDR path)
+        run: |
+          set -euo pipefail
+          file out-x11-spike/Tiler.X11.Spike
+          xvfb-run -a -s "-screen 0 1920x1080x24" ./out-x11-spike/Tiler.X11.Spike | tee randr.log
+          for operation in AOT-GUARD FOCUS GEOMETRY-CSD GEOMETRY-FRAMED APPLY NOT-TILEABLE; do
+            grep -q "^$operation ok" randr.log
+          done
+          grep -q "^MONITORS ok source=randr" randr.log
+      - name: run the fallback path under a RANDR-disabled Xvfb
+        run: |
+          set -euo pipefail
+          Xvfb :98 -screen 0 1920x1080x24 -extension RANDR -nolisten tcp &
+          trap 'kill %1' EXIT
+          for _ in $(seq 100); do [ -S /tmp/.X11-unix/X98 ] && break; sleep 0.1; done
+          DISPLAY=:98 ./out-x11-spike/Tiler.X11.Spike | tee fallback.log
+          grep -q "^MONITORS ok source=fallback" fallback.log
+      - name: record results in the job summary
+        if: always()
+        run: |
+          {
+            echo "### X11-in-AOT spike (issue #5)"
+            echo ""
+            echo '| run | operations reported ok |'
+            echo '|---|---|'
+            for log in randr.log fallback.log; do
+              [ -f "$log" ] && echo "| $log | $(grep -c ' ok ' "$log") |"
+            done
+            echo ""
+            grep '^MONITORS ok' randr.log fallback.log 2>/dev/null || true
+          } >> "$GITHUB_STEP_SUMMARY"
