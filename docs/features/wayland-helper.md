@@ -17,7 +17,7 @@ is no longer required; a fresh GNOME install needs nothing but `tiler`).
 | `List` | → `s` (JSON) | all windows: `{id, title, focused, monitor, x, y, width, height}` (client coords) |
 | `GetFocused` | → `(u s)` | focused window id + title, `(0,"")` if none |
 | `GetMonitors` | → `s` (JSON) | `{id, x, y, width, height, workX, workY, workW, workH, name}` |
-| `MoveResize` | `(u i i u u)` | id, x, y, w, h — mutter `move_resize_full` on the window, work-area absolute |
+| `MoveResize` | `(u i i u u)` | id, x, y, w, h — mutter `move_resize_frame(user_op, root_x_nw, root_y_nw, w, h)` on the window, work-area absolute. It takes root-NW **frame** coordinates, so the extension converts the client-area rectangle with `get_frame_rect`/`get_client_rect` first |
 | `Version` | → `s` | extension/app compat version (semver) |
 
 JSON over D-Bus (as today's Window-Calls integration does) is deliberate: it keeps the
@@ -28,13 +28,13 @@ generated proxy trivial and lets the shape evolve without ABI churn; payloads ar
 
 Uses the same documented-in-practice mutter globals as Window Calls:
 `global.get_window_manager()`, `global.get_display()`, `Mutter.Window`,
-`monitor.get_workarea()` (per-monitor work area — this is what gives us bar-free
-rectangles on Wayland), `global.window_focus`.
+`Meta.Window.get_work_area_for_monitor(current_monitor)` (per-monitor work area — this is
+what gives us bar-free rectangles on Wayland), `global.window_focus`.
 **Policy:** support a rolling window of GNOME current − 2 (e.g. when GNOME 49 ships:
-support 47–49). The extension pins `api-version` in `metadata.json`; per-release
-verification via the manual matrix (README testing strategy). mutter internals churn is
-the single biggest long-maintenance cost of the whole project — budget for it, don't
-hide it.
+support 47–49). The extension pins its supported releases in the `shell-version` list in
+`metadata.json`; per-release verification via the manual matrix (README testing strategy).
+mutter internals churn is the single biggest long-maintenance cost of the whole project —
+budget for it, don't hide it.
 
 ## Install / consent flow (v1 decision: auto, one consent)
 
@@ -48,11 +48,13 @@ hide it.
    `~/.local/share/gnome-shell/extensions/tiler@blange.dev/` (user-local, no root,
    survives upgrade: reinstall overwrites, old version dir removed).
 5. **Enable:** add UUID to `org.gnome.shell enabled-extensions` (GSettings) **and** call
-   `org.gnome.Shell.EnableExtension` D-Bus method where available (GNOME ≥ 41); if the
-   shell only picks it up after restart, surface a precise "press alt+F2 → `restart`"
-   instruction (one-time, clearly explained).
+   `org.gnome.Shell.Extensions.EnableExtension` on `/org/gnome/Shell` (the manager lives in a
+   D-Bus-activated service on GNOME 51). A freshly copied extension is only scanned at shell
+   start, and that call is then a no-op, so surface a precise reload instruction (one-time,
+   clearly explained): on Wayland that is log out and back in — `alt+F2` → `restart` exists
+   on X11 only, and `ReloadExtension` is deprecated.
 6. **Verify:** wait for bus name `dev.blange.Tiler` (≤ 10 s); success → done; timeout →
-   remediation message (restart instruction) and exit 3.
+   remediation message (the reload instruction from step 5) and exit 3.
 7. **Uninstall:** mirror of 4–5 (remove dir, remove from `enabled-extensions`,
    DisableExtension), keep consent record so a future reinstall doesn't re-prompt.
    `doctor` reports full state at all times.

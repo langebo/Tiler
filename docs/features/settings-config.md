@@ -39,7 +39,7 @@ public interface IConfig {
   as the GTK4 bindings, so one dependency serves both config and GUI). Fallback if the
   GLib binding proves AOT-unfriendly in the M0 spike: direct D-Bus calls to
   `org.gnome.desktop.SettingsWritable`/dconf (small, still AOT-safe). Decision is forced
-  by spike result, documented in settings-dialog.md.
+  by spike result, documented in [docs/README.md](../README.md) (decisions table).
 - `wm.keybindings` (the GNOME desktop schema) is accessed the same way but treated as a
   separate, external schema — only via `KeybindingManager`.
 

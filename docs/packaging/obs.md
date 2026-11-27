@@ -26,7 +26,8 @@ install the .NET AOT toolchain in build roots — possible but heavy). So:
   linux-arm64 in separate subpackages or arch: noarch + per-arch binary blobs),
   schema XML, extension tarball, spec file template.
 - spec: `%install` places prebuilt AOT binaries; `Requires: libX11, libXrandr`
-  (runtime P/Invoke deps), `Recommends: tiler-helper, dconf, gnome-settings-daemon`.
+  (runtime P/Invoke deps), `Recommends: tiler-helper, dconf, gnome-settings-daemon, gtk4`
+  — gtk4 only for the settings dialog, which needs the system library; the CLI never loads it.
   `%post`: `glib-compile-schemas`. `%files` minimal. No build-time .NET in OBS at all.
 - **Constraint to document in the spec header:** binaries are prebuilt upstream (OBS
   verifies/builds packaging only). If you later want full OBS-native AOT builds, that
