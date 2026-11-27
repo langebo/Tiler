@@ -100,6 +100,6 @@ xvfb-run -a ./out/tiler --version
 
 ## Repo-wide rules live here only
 
-`.pi/agents/` defines the `architect`, `worker` and `reviewer` roles, and they inherit this
+`.agents/agents/` defines the `architect`, `worker` and `reviewer` roles, and they inherit this
 file. Repo facts and constraints belong in `AGENTS.md` — do not repeat them in role prompts or
 in per-task dispatch text, or they drift.
