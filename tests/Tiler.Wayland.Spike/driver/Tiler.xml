@@ -1,0 +1,18 @@
+<node>
+   <interface name="dev.blange.Tiler">
+      <method name="GetFocused">
+         <arg type="u" direction="out" name="winid" />
+         <arg type="s" direction="out" name="title" />
+      </method>
+      <method name="GetWorkarea">
+         <arg type="s" direction="out" name="workarea" />
+      </method>
+      <method name="MoveResize">
+         <arg type="u" direction="in" name="winid" />
+         <arg type="i" direction="in" name="x" />
+         <arg type="i" direction="in" name="y" />
+         <arg type="u" direction="in" name="width" />
+         <arg type="u" direction="in" name="height" />
+      </method>
+   </interface>
+</node>

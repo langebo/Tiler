@@ -81,6 +81,70 @@ rects per monitor.
 - All rectangles passed are work-area-clamped client coordinates in monitor-absolute space;
   the extension translates to mutter's `Mutter.Window.move_resize_full(...)` calls.
 
+## WaylandBackend spike results (TL-106)
+
+Spike sources: `tests/Tiler.Wayland.Spike/` (throwaway, not in `Tiler.sln`) — a 78-line ESM
+`extension.js` + `metadata.json`, and a C# driver using the same `Tmds.DBus.SourceGenerator`
+proxy pattern as `src/Tiler/Dbus/Windows.xml` (a standalone csproj, so the generator wiring is
+proven outside the shipping project too). The extension exports `dev.blange.Tiler` on
+`/dev/blange/Tiler` with `GetFocused → (u s)`, `GetWorkarea → s` (spike-only probe standing in
+for the shipping `GetMonitors`) and `MoveResize (u i i u u)`, applies a tile by unmaximizing
+first and then calling `move_resize_frame`.
+
+Verified on GNOME Shell 51.1 / Wayland: the files install to
+`~/.local/share/gnome-shell/extensions/tiler@blange.dev/`, `node --check` passes, the bus name
+`dev.blange.Tiler` was unowned before install, and the D-Bus surface marshals end to end — a
+stand-in GJS process exporting the identical XML object under that name was driven by the C#
+proxy (`FOCUSED ok id=4242`, `WORKAREA ok x=0 y=32 w=1920 h=1048`, `TILED ok … w=960 h=1048`,
+exit 0). After one log-out/log-in the extension loads and the mutter-side behaviour is
+confirmed live: `gnome-extensions info tiler@blange.dev` → `Enabled: Yes` / `State: ACTIVE`,
+`dev.blange.Tiler` owned on the session bus, `GetFocused` → `(211709859, 'π - Tiler')`,
+`GetWorkarea` → `{"x":0,"y":32,"w":1920,"h":1168}` on the 1920×1200 screen (top bar
+excluded) and the C# driver printed `FOCUSED ok` / `WORKAREA ok x=0 y=32 w=1920 h=1168` /
+`TILED ok x=0 y=32 w=960 h=1168`, exit 0, with the window visibly snapped to the left
+half. The running shell only scans
+extension directories at startup, so a freshly copied extension cannot be enabled live —
+`gnome-extensions enable` answers `Extension "tiler@blange.dev" does not exist`, the manager's
+`EnableExtension` returns `(false,)`, `ReloadExtension` fails with
+`NotSupported: ReloadExtension is deprecated and does not work`, `org.gnome.Shell.Eval` returns
+`(false, '')` (unsafe mode off) and editing `org.gnome.shell enabled-extensions` does not load
+it either. On GNOME 51 the manager interface itself is `org.gnome.Shell.Extensions` on
+`/org/gnome/Shell` (manager runs in a D-Bus-activated systemd user service; the XML ships in
+`gnome-shell-dbus-interfaces.gresource`), which is also why the interface is absent from
+`/org/gnome/Shell/Extensions`.
+
+| mutter / shell API | used for | documentation | stability class | signal for TL-304 |
+|---|---|---|---|---|
+| `global.get_window_actors()` | find the focused window actor; all lookup is by actor | GNOME Shell JS global (`js/ui/main.js`), in no published API doc — but every window extension uses it | internal-churn-risk (shipped, undocumented) | most load-bearing undocumented dependency; keep every use in one helper and re-verify per release |
+| `global.display.get_current_monitor()` | which monitor's work area to probe | `Meta.Display.get_current_monitor`, introspectable in the installed `Meta-51.typelib`; no upstream docs | internal-churn-risk | already on the spec's list; per-release check |
+| `meta_window.has_focus()` | find the focused window | `Meta.Window.has_focus` in `Meta-51.typelib` (mutter `src/core/window.c`) | STABLE-in-practice | keep |
+| `meta_window.get_id()` | window id in the `(u s)` reply and back into `MoveResize` | `Meta.Window.get_id` in `Meta-51.typelib` | STABLE-in-practice (a Meta window id, not an XID — opaque to the engine anyway) | keep |
+| `meta_window.get_title()` | title in the `GetFocused` reply | `Meta.Window:title` property | STABLE-in-practice | keep |
+| `meta_window.get_work_area_for_monitor(i)` | bar-excluded rectangle (AC3) | `Meta.Window` method in `Meta-51.typelib`; `get_work_area_current_monitor` and `get_work_area_all_monitors` also exist; no upstream docs | internal-churn-risk (three near-identical accessors) | pin the accessor, re-verify per release |
+| `meta_window.maximized_horizontally` / `maximized_vertically` | decide whether to unmaximize first | `Meta.Window` GObject booleans | STABLE-in-practice | keep |
+| `meta_window.unmaximize(3)` | clear both maximize axes before tiling | `Meta.Window.unmaximize`, but the installed typelib exposes `unmaximize(self)` — no flags argument; the `3` that window-calls passes is tolerated by GJS, not by the introspected signature | internal-churn-risk | do not copy the magic `3`; verify `unmaximize()` per release |
+| `meta_window.move_resize_frame(true, x, y, w, h)` | apply the tile | `move_resize_frame(self, user_op:bool, root_x_nw:int, root_y_nw:int, w:int, h:int)` in `Meta-51.typelib` | internal-churn-risk (only apply path) | biggest item: it takes root-north-west **frame** coordinates, so the backend contract's client-area rectangles need a `get_frame_rect`/`get_client_rect` adjustment |
+| `Gio.DBusExportedObject.wrapJSObject(...)` + `.export(connection, path)` | publish the D-Bus object | documented GJS override over GIO | STABLE | keep; it does **not** claim the well-known name |
+| `Gio.bus_own_name(...)` | own `dev.blange.Tiler` (AC1) | documented GIO API | STABLE | mandatory: without it the exported object is reachable only on the unique name — verified, `ListNames` showed nothing until the call was added |
+
+Divergences from `docs/features/wayland-helper.md` found while running the spike (the spec is
+not edited here; TL-301/TL-304 consume these):
+
+- `MoveResize` “mutter `move_resize_full`” — **no such method**: `Meta-51` exposes
+  `move_resize_frame(user_op, root_x_nw, root_y_nw, w, h)` (and `move_frame`), verified by
+  introspecting the installed typelib. It also takes frame (root-NW) coordinates, not the
+  client area the backend contract promises.
+- `monitor.get_workarea()` — not what the spike used; the bar-free rectangle came from
+  `Meta.Window.get_work_area_for_monitor(current_monitor)` (window-calls' own idiom).
+- Enable step “call `org.gnome.Shell.EnableExtension` where available” — that interface name
+  does not exist; it is `org.gnome.Shell.Extensions.EnableExtension` on `/org/gnome/Shell`, and
+  it is a no-op for a fresh install (the shell has not scanned it). The spec's
+  “alt+F2 → `restart`” instruction is X11-only; on Wayland the only reload is log out/in.
+- “The extension pins `api-version` in `metadata.json`” — GNOME 51 extension metadata has no
+  `api-version` key; the version pin is `shell-version` (a list).
+- `global.window_focus`, `global.get_window_manager()` and the shipping
+  `List`/`GetMonitors`/`Version` methods were not exercised by this spike.
+
 ## Geometry provider note
 
 Both backends populate the same `Monitor` model, so the engine is identical across

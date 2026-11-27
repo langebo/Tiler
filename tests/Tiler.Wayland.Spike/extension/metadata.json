@@ -1,0 +1,7 @@
+{
+  "uuid": "tiler@blange.dev",
+  "name": "Tiler",
+  "description": "Tiles the focused window on request over D-Bus (dev.blange.Tiler). Spike prototype for issue #6.",
+  "shell-version": ["51"],
+  "version": 1
+}
