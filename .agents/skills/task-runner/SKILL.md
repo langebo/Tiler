@@ -150,8 +150,9 @@ Self-contained prompt, in this order:
   Follow it; a wrong or impossible step is reported, never silently redesigned.
 - **The task block verbatim** (issue body + issue number, so commits can reference it).
 - **Spec excerpts** that constrain the design (paste them and give the paths).
-- **Task-specific ground rules** only (usual ones — net11/AOT, no new deps, `docs/` read-only,
-  test integrity, `plan.md`/`progress.md` scratch, clean worktree — are in the role prompt).
+- **Task-specific ground rules** only — repo-wide rules (net11/AOT, deps, test integrity,
+  `docs/` policy, verification commands) come from the project `AGENTS.md`, which every child
+  inherits; do not paste them into dispatch prompts.
 - **Deliverable:** "end with the `## REPORT` section as defined in your instructions".
 - **Re-dispatch (iteration > 1):** add `## ISSUES TO FIX` verbatim (reviewer issues or CI log
   excerpts) and "fix every item on the same branch, re-run the suite, report the delta".

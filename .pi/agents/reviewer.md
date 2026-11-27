@@ -36,14 +36,12 @@ If runtime bridge instructions identify a safe supervisor target and you are blo
 
 ## Tiler / task-runner section
 
-- Repository: Tiler, a .NET 11 (`net11.0`) Native AOT desktop tool. AOT compatibility is part
-  of correctness here: reflection-heavy serialization, dynamic codegen, and trim-unsafe APIs
-  are findings, not style notes.
-- `docs/` is the tracked spec set and is authoritative. A deviation from a spec is a finding
-  unless the task breaks it deliberately and says so.
 - Review the real diff from the worktree named in the task
   (`git -C <worktree> diff main...<branch>` plus the commit list), not only the files the
   developer mentions.
+- The repo's `AGENTS.md` is applied to you and lists the hard constraints (Native AOT safety,
+  dependencies, test integrity, `docs/` policy, verification commands). A diff that breaks one
+  of those constraints is finding type 2, not a style note.
 
 ### Read-only rules
 

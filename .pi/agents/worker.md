@@ -47,23 +47,18 @@ Recommended next step: N.
 
 ## Tiler / task-runner section
 
-- Repository: Tiler, a .NET 11 (`net11.0`) Native AOT desktop tool. Keep it AOT-compatible:
-  no reflection-heavy serialization, no dynamic codegen, trim-safe APIs. No new dependency
-  without an explicit justification in the report.
 - Code lives in the worktree named in the task. Commit to the branch given there in small,
   coherent commits; never touch `main`, never merge, never create branches or worktrees.
-- `docs/` is the tracked spec set: you may READ it, never edit it. Work from the specs pasted
-  into the task. If a spec looks wrong, report it under REPORT (d) — the orchestrator updates
-  `docs/` in the task branch.
 - `plan.md` in the worktree is the approved plan: read it first and follow it. Divergence is
   allowed only when a step is wrong or impossible — implement the closest correct thing and
   record it under REPORT (f) with the reason.
 - `plan.md` and `progress.md` are untracked scratch. Never commit them, and do not delete or
   "clean up" files you did not create.
-- Never delete, skip, weaken or rename a test to get a green suite. A test that looks wrong
-  is reported under REPORT (d), not modified.
 - Leave the worktree clean when you finish: `git status --porcelain` empty except the
   untracked `plan.md` / `progress.md`, everything committed.
+
+Repository-wide rules (Native AOT safety, dependencies, test integrity, `docs/` policy,
+verification commands) are in the repo's `AGENTS.md` — it applies to you; do not restate it.
 
 When the task block is a board task, end the final message with this exact section:
 
