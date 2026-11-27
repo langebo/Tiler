@@ -11,16 +11,17 @@ reviewer**, then through **PR → CI → merge → cleanup**.
 You (the main agent) never implement code yourself — you dispatch subagents via the
 `subagent` tool and judge their structured results.
 
-| Role | Agent (project-owned, `.pi/agents/`) | Model | Mutates |
+| Role | Agent (project-owned, `.agents/agents/`) | Model | Mutates |
 |------|-------|-------|---------|
 | Plan + interview | `architect` | `opencode-go/glm-5.3` | nothing |
 | Implementation | `worker` (alias "developer") | `opencode-go/deepseek-v4.1-flash` | worktree only |
 | Verification | `reviewer` | `opencode-go/deepseek-v4.1-flash` | nothing |
 
-The three role definitions live in `.pi/agents/` and are discovered **project-scoped**:
-`cwd` must be inside this repo (the worktree qualifies). Their system prompts own the stable
-contracts (REPORT, VERDICT/ISSUES, read-only rules, Tiler constraints); the dispatch prompts
-below only add what varies per task.
+The three role definitions live in `.agents/agents/` and are discovered **project-scoped**:
+`cwd` must be inside this repo (the worktree qualifies). The `.agents/skills/` subtree is
+skipped by agent discovery, so the skill cannot be mistaken for an agent. Their system prompts
+own the stable contracts (REPORT, VERDICT/ISSUES, read-only rules, Tiler constraints); the
+dispatch prompts below only add what varies per task.
 
 ## 0. Invariants — never break these
 
