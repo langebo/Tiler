@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Spike (issue #5): proves the X11 P/Invoke surface inside a net11 Native AOT binary.
+       Not part of Tiler.sln on purpose — TL-203 grows the production X11Backend; nothing in
+       the shipping build may depend on this. Re-enables the AOT settings
+       tests/Directory.Build.props opts out of. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PublishAot>true</PublishAot>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+  </PropertyGroup>
+
+</Project>
