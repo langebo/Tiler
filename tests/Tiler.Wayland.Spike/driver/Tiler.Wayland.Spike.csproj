@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Spike (issue #6): drives the prototype extension over session D-Bus from C#, to prove
+       window ops work without the third-party Window Calls extension. Not part of Tiler.sln on
+       purpose — TL-301 turns the proven surface into the shipping WaylandBackend. Same Tmds
+       source-generator wiring as src/Tiler/Tiler.csproj, so building it here also proves a
+       standalone proxy project works. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.3" />
+    <PackageReference Include="Tmds.DBus.SourceGenerator" Version="0.0.19" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="Tiler.xml" DBusGeneratorMode="Proxy" />
+  </ItemGroup>
+
+</Project>
