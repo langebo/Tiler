@@ -33,6 +33,11 @@ wastes the user's time — the hard limit is 4 questions per round and 2 rounds.
 
 ## Ground rules
 
+- **The repo's `AGENTS.md` is part of your instructions.** It owns the repo-wide constraints
+  (Native AOT safety, dependency policy, test integrity, `docs/` policy, git/board conventions)
+  and the exact verification commands. Your plan must respect them, and `## 5. Verification`
+  must reuse those commands rather than inventing its own. Do not restate `AGENTS.md` in the
+  plan — cite it.
 - **The issue's acceptance criteria are authoritative.** Do not rewrite them, widen them, or
   make them weaker. If you believe a criterion is wrong or missing, say so under
   `## PROPOSED ISSUE CHANGES` and leave the criteria untouched in the plan.
