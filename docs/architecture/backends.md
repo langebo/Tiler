@@ -96,8 +96,13 @@ Verified on GNOME Shell 51.1 / Wayland: the files install to
 `dev.blange.Tiler` was unowned before install, and the D-Bus surface marshals end to end — a
 stand-in GJS process exporting the identical XML object under that name was driven by the C#
 proxy (`FOCUSED ok id=4242`, `WORKAREA ok x=0 y=32 w=1920 h=1048`, `TILED ok … w=960 h=1048`,
-exit 0). Not verified from the automated run, still owed by one manual log-out/log-in: the
-mutter-side behaviour (focus, real work area, the visible tile). The running shell only scans
+exit 0). After one log-out/log-in the extension loads and the mutter-side behaviour is
+confirmed live: `gnome-extensions info tiler@blange.dev` → `Enabled: Yes` / `State: ACTIVE`,
+`dev.blange.Tiler` owned on the session bus, `GetFocused` → `(211709859, 'π - Tiler')`,
+`GetWorkarea` → `{"x":0,"y":32,"w":1920,"h":1168}` on the 1920×1200 screen (top bar
+excluded) and the C# driver printed `FOCUSED ok` / `WORKAREA ok x=0 y=32 w=1920 h=1168` /
+`TILED ok x=0 y=32 w=960 h=1168`, exit 0, with the window visibly snapped to the left
+half. The running shell only scans
 extension directories at startup, so a freshly copied extension cannot be enabled live —
 `gnome-extensions enable` answers `Extension "tiler@blange.dev" does not exist`, the manager's
 `EnableExtension` returns `(false,)`, `ReloadExtension` fails with
