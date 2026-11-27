@@ -28,14 +28,18 @@ prefix `dotnet test` with `xvfb-run -a` on a headless box (`xvfb` package).
 
 ## The plan
 
-v1 turns this into a real, installable application:
+v1 turns this into a real, installable application (spike-gated scope, now locked — see
+[docs/README.md](docs/README.md)):
 
-- **Hybrid window manipulation** — native X11 (P/Invoke) on X11; the GNOME extension
-  becomes a small dedicated Wayland helper (auto-install with one-time consent)
+- **Hybrid window manipulation** — native X11 on X11 (function-pointer interop via
+  `NativeLibrary.Load`, proven AOT-clean); a small dedicated Wayland helper extension
+  (auto-install with one-time consent, proven live on GNOME Shell 51 — a fresh install
+  only loads after a log out/in)
 - **Runtime geometry** — monitor/work-area auto-detection, multi-monitor rules
 - **Config & keybindings** — GSettings schema, app-managed `custom-keybindings`
   (zero manual setup)
-- **Settings dialog** — small GTK4 UI (opt-in `tiler gui`)
+- **Settings dialog** — small GTK4 UI (opt-in `tiler gui`), proven on x64 and arm64;
+  needs the system's GTK4, the CLI works without it
 - **Packaging** — Flatpak + OBS first, snap later; GitHub Actions CI/release
 
 The task board (epics, milestones, tasks) lives in the
@@ -46,6 +50,7 @@ code and engineering documentation.
 
 | Area | Doc |
 |---|---|
+| Index | [docs index · decisions · what v1 is](docs/README.md) |
 | Architecture | [overview](docs/architecture/overview.md) · [backends](docs/architecture/backends.md) |
 | Features | [window positions](docs/features/window-positions.md) · [runtime geometry](docs/features/runtime-geometry.md) · [CLI](docs/features/cli.md) · [keybindings](docs/features/keybindings.md) · [config](docs/features/settings-config.md) · [settings dialog](docs/features/settings-dialog.md) · [Wayland helper](docs/features/wayland-helper.md) |
 | Packaging | [Flatpak](docs/packaging/flatpak.md) · [OBS](docs/packaging/obs.md) · [snap](docs/packaging/snap.md) · [CI/release](docs/packaging/ci-release.md) |

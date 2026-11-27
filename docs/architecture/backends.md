@@ -79,7 +79,9 @@ rects per monitor.
   structured error with remediation (run `tiler install-helper`; extension may need a
   shell restart) → exit code 3.
 - All rectangles passed are work-area-clamped client coordinates in monitor-absolute space;
-  the extension translates to mutter's `Mutter.Window.move_resize_full(...)` calls.
+  the extension translates to mutter's
+  `Mutter.Window.move_resize_frame(user_op, root_x_nw, root_y_nw, w, h)` calls, converting the
+  client-area rectangle to frame coordinates.
 
 ## WaylandBackend spike results (TL-106)
 
