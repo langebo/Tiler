@@ -20,7 +20,7 @@ public sealed class X11BackendTests : IDisposable
             return;
         }
 
-        _wire = X11Wire.Open();
+        _wire = TestDisplay.Open();
         _backend = new X11SpikeBackend(_wire);
         _windows = new X11Windows(_wire);
         ClearRootProperties();
