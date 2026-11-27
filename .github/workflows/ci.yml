@@ -55,7 +55,9 @@ jobs:
       - name: install Xvfb and X11 CLI tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends xvfb x11-xserver-utils xdotool
+          # xwininfo (the geometry oracle) ships in x11-utils on Ubuntu 24.04, not in
+          # x11-xserver-utils (which only carries xrandr).
+          sudo apt-get install -y --no-install-recommends xvfb x11-xserver-utils x11-utils xdotool
       # Unit tests need no display; the Tiler.X11.Tests integration project needs one.
       - name: test (unit + Xvfb integration)
         run: xvfb-run -a dotnet test
