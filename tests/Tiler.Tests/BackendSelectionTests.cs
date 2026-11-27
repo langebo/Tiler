@@ -101,6 +101,19 @@ public class BackendSelectionTests
         Assert.Equal((4242UL, new TileRect(0, 32, 960, 1048)), Assert.Single(backend.Applied));
     }
 
+    [Theory]
+    [InlineData(null, "DISPLAY is unset; run tiler inside an X11 session")]
+    [InlineData("", "DISPLAY is empty; run tiler inside an X11 session")]
+    [InlineData(":0", "DISPLAY is set to \":0\"; run tiler inside an X11 session")]
+    public void NoDisplayReportsTheDisplayVariableState(string? display, string expectedDetail)
+    {
+        var error = new NoDisplay(display);
+
+        Assert.Equal(3, error.ExitCode);
+        Assert.Equal(display, error.Display);
+        Assert.Equal(expectedDetail, error.Detail);
+    }
+
     [Fact]
     public void TypedErrorsCarryTheirContext()
     {
@@ -110,7 +123,9 @@ public class BackendSelectionTests
         Assert.Equal("override-redirect", notTileable.Reason);
 
         Assert.Equal(3, new NoDisplay(null).ExitCode);
+        Assert.Contains("XDG_SESSION_TYPE is empty", new NoBackend("").Detail);
         Assert.Equal(2, new NoFocusedWindow("x11").ExitCode);
+        Assert.Equal("unknown session reported no focused window", new NoFocusedWindow("").Detail);
         Assert.Equal(3, new HelperUnavailable("dev.blange.Tiler", "run tiler install-helper").ExitCode);
 
         var apply = new ApplyFailed(7, new TileRect(1, 2, 3, 4), "min-size guard");
