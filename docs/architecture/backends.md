@@ -61,7 +61,8 @@ called through function pointers only (no `DllImport`, so no marshalling stub to
 Focus, CSD/framed geometry, `XMoveResizeWindow` and RANDR monitors were read back with
 `xwininfo`/`xrandr`; the `_NET_LIST_OF_MONITORS` path was exercised with RANDR disabled. This
 lives in `tests/Tiler.X11.Tests` (CI, under `xvfb-run`) plus a temporary `tests/Tiler.X11.Spike`
-AOT exe with an `x11-spike` CI job, both to be deleted when the real backend lands.
+AOT exe run by hand (`dotnet publish` + `xvfb-run`, see its README), both to be deleted when the
+real backend lands.
 
 Details that deviated from the text above: `XGetWindowReparentData` does not exist (real calls
 now listed above); RANDR has no work-area field, so work areas come from `_NET_WORKAREA`;

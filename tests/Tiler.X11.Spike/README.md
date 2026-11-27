@@ -25,5 +25,5 @@ Xvfb :99 -screen 0 1920x1080x24 -extension RANDR -nolisten tcp &
 DISPLAY=:99 ./out-x11-spike/Tiler.X11.Spike    # MONITORS ok ... source=fallback
 ```
 
-The `x11-spike (linux-x64)` CI job publishes and runs it under Xvfb (see
-`.github/workflows/ci.yml`).
+The spike is run manually (there is no CI job for it): publish and run as above, once with and
+once without RANDR.
