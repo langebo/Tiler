@@ -37,20 +37,36 @@ are standard X11 userland deps, packaged per distro). Link at runtime, resolve
 Atom/protocol operations (all EWMH + core):
 - Display: `XOpenDisplay` / `$DISPLAY`; screen = `DefaultScreen`.
 - Focus: `_NET_ACTIVE_WINDOW` on root (returns 0 → no focus).
-- Client geometry: `XGetWindowReparentData` gives frame origin; read `_NET_FRAME_EXTENTS`
-  (`left top right bottom`) to derive client area. CSD windows (no reparenting frame,
-  `border_width == 0` and no frame extents) tile by their own geometry.
-- Monitor list: prefer **RANDR** `RRGetMonitors` (gives work area per monitor since
-  Xrandr 1.4, and active state); fallback `_NET_LIST_OF_MONITORS` + `_NET_WORKAREA`
-  (work area of the *primary screen only* — per-monitor work area is then full monitor).
-  Documented degradation, acceptable: X11 multi-monitor with per-monitor docks is rare.
+- Client geometry: frame = `XQueryTree` parent, frame origin =
+  `XTranslateCoordinates(frame, root)`; read `_NET_FRAME_EXTENTS` (`left top right bottom`)
+  to derive client area. CSD windows (no reparenting frame, `border_width == 0` and no frame
+  extents) tile by their own geometry. (`XGetWindowReparentData` is not a libX11 function —
+  see the spike note below.)
+- Monitor list: prefer **RANDR** `RRGetMonitors` (monitor geometry + active state). RANDR does
+  not report work areas, so work area = monitor rect ∩ `_NET_WORKAREA` (what GDK does), full
+  monitor when the property is absent. Fallback without RANDR: `_NET_LIST_OF_MONITORS` +
+  `_NET_WORKAREA` (work area of the *primary screen only* — per-monitor work area is then full
+  monitor). Documented degradation, acceptable: X11 multi-monitor with per-monitor docks is rare.
 - Apply: `XMoveResizeWindow` (or `XMoveResizeWindow` on the frame, adjusting for
   `_NET_FRAME_EXTENTS`) on the client window; use `XSync`/event round-trip to confirm.
 - Skip unmanaged/override-redirect windows (dialogs, docklets): `XGetWindowAttributes`
   `override_redirect` → error "window not tileable" (exit 4).
 
-Work-area semantics: the top bar / docks are excluded because RANDR reports the monitor's
-`workX/workY/workWidth/workHeight`. This replaces the hardcoded 32px offset.
+Work-area semantics: the top bar / docks are excluded because `_NET_WORKAREA` is the WM's
+work area (clipped to the monitor rect). This replaces the hardcoded 32px offset.
+
+Spike results (TL-105): the whole surface above was proven under Xvfb from a net11 Native AOT
+binary — `libX11.so.6` / `libXrandr.so.2` resolved with `NativeLibrary.Load` + `GetExport` and
+called through function pointers only (no `DllImport`, so no marshalling stub to fall back to).
+Focus, CSD/framed geometry, `XMoveResizeWindow` and RANDR monitors were read back with
+`xwininfo`/`xrandr`; the `_NET_LIST_OF_MONITORS` path was exercised with RANDR disabled. This
+lives in `tests/Tiler.X11.Tests` (CI, under `xvfb-run`) plus a temporary `tests/Tiler.X11.Spike`
+AOT exe with an `x11-spike` CI job, both to be deleted when the real backend lands.
+
+Details that deviated from the text above: `XGetWindowReparentData` does not exist (real calls
+now listed above); RANDR has no work-area field, so work areas come from `_NET_WORKAREA`;
+`_NET_LIST_OF_MONITORS` has no authoritative layout — read as flat CARDINAL x/y/width/height
+rects per monitor.
 
 ## WaylandBackend (D-Bus → own helper extension)
 
