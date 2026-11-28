@@ -13,7 +13,7 @@ public sealed class X11FallbackTests
     public void MonitorsComeFromEwmhPropertiesWhenRandRIsDisabled()
     {
         using var server = XvfbServer.Start(1280, 1024, "-extension", "RANDR");
-        using var wire = X11Wire.Open(server.Display);
+        using var wire = TestDisplay.Open(server.Display);
         var backend = new X11SpikeBackend(wire);
 
         // xrandr agrees the server has no RANDR: it fails on this display.

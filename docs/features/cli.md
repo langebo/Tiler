@@ -33,8 +33,9 @@ Post-v1: `--monitor <n|name>` (cross-monitor targeting), `--window <title-regex>
 | 1 | bad usage / unknown position (parser error) |
 | 2 | no focused window (e.g. overview open, lock screen) |
 | 3 | backend unavailable (no `$DISPLAY` under X11; helper extension not active on Wayland) — message always includes the remediation command |
-| 4 | window not tileable or geometry rejected (override-redirect, min-size guard) |
+| 4 | window not tileable or geometry rejected (override-redirect, min-size guard, `ApplyFailed` when the backend rejects the rectangle) |
 | 5 | stale/inconsistent monitor state |
+| 6 | session type unknown or unset (`XDG_SESSION_TYPE` is neither `x11` nor `wayland`) — the message names the value and the remediation; never a cross-protocol fallback |
 
 ## Behavior contract
 

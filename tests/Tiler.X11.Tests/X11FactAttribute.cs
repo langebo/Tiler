@@ -5,7 +5,8 @@ namespace Tiler.X11.Tests;
 /// <summary>
 /// Runs on the display in $DISPLAY, which must be a bare Xvfb: the fixture plays the window
 /// manager itself (EWMH fake, no reparenting), so a display with a real WM would just fight it.
-/// Skips instead of failing anywhere else, so a bare `dotnet test` on a desktop still passes.
+/// Skips when there is no display or it has a window manager, so a bare `dotnet test` on a
+/// desktop still passes.
 /// </summary>
 public sealed class X11FactAttribute : FactAttribute
 {
@@ -26,12 +27,14 @@ public sealed class X11FactAttribute : FactAttribute
     {
         try
         {
-            using var wire = X11Wire.Open(display);
+            using var wire = TestDisplay.Open(display);
             return wire.ReadLongs(wire.Root, wire.Atom("_NET_SUPPORTING_WM_CHECK"), Xlib.AnyPropertyType).Length > 0;
         }
         catch (BackendException)
         {
-            return true; // a display we cannot inspect is not a display we can drive
+            // A display we cannot reach is not a reason to skip: the test body reports it as a
+            // failure, and a skip here would turn a broken display into a green run.
+            return false;
         }
     }
 }
